@@ -18,7 +18,7 @@ def graph(
         clr=None,
         alpha=1,
         need_line='',
-        mark='.',
+        mark=None,
         dots=10,
         figsize=None,
         dpi=300,
@@ -52,6 +52,9 @@ def graph(
     #     yerr = []
     # if xerr is None:
     #     xerr = []
+    if mark is None:
+        mark = ['.']*len(x)
+
     fig = plt.figure(figsize=figsize, dpi=dpi)  # задаем размер картинки и ее разрешение
 
     if adds is not None:  # пишем дополнительные пояснения на легенде
@@ -67,7 +70,7 @@ def graph(
                         yerr=yerr[i],
                         elinewidth=barwidth,
                         alpha=alpha,
-                        fmt=mark,
+                        fmt=mark[i],
                         ms=dots,
                         label=labels[i],
                         color=clr[i]
@@ -80,7 +83,7 @@ def graph(
                         yerr=yerr[i],
                         elinewidth=barwidth,
                         alpha=alpha,
-                        fmt=mark,
+                        fmt=mark[i],
                         ms=dots,
                         label=labels[i]
                     )
@@ -92,7 +95,7 @@ def graph(
                     y[i],
                     yerr=yerr[i],
                     elinewidth=barwidth,
-                    fmt=mark,
+                    fmt=mark[i],
                     ms=dots
                 )
 
@@ -106,7 +109,7 @@ def graph(
                         xerr=xerr[i],
                         elinewidth=barwidth,
                         alpha=alpha,
-                        fmt=mark,
+                        fmt=mark[i],
                         ms=dots,
                         label=labels[i],
                         color=clr[i]
@@ -119,7 +122,7 @@ def graph(
                         xerr=xerr[i],
                         elinewidth=barwidth,
                         alpha=alpha,
-                        fmt=mark,
+                        fmt=mark[i],
                         ms=dots,
                         label=labels[i]
                     )
@@ -131,7 +134,7 @@ def graph(
                     y[i],
                     xerr=xerr[i],
                     elinewidth=barwidth,
-                    fmt=mark,
+                    fmt=mark[i],
                     ms=dots
                 )
 
@@ -146,7 +149,7 @@ def graph(
                         yerr=yerr[i],
                         elinewidth=barwidth,
                         alpha=alpha,
-                        fmt=mark,
+                        fmt=mark[i],
                         ms=dots,
                         label=labels[i],
                         color=clr[i]
@@ -160,7 +163,7 @@ def graph(
                         yerr=yerr[i],
                         elinewidth=barwidth,
                         alpha=alpha,
-                        fmt=mark,
+                        fmt=mark[i],
                         ms=dots,
                         label=labels[i]
                     )
@@ -173,7 +176,7 @@ def graph(
                     xerr=xerr[i],
                     yerr=yerr[i],
                     elinewidth=barwidth,
-                    fmt=mark,
+                    fmt=mark[i],
                     ms=dots
                 )
 
@@ -184,7 +187,7 @@ def graph(
                     plt.plot(
                         x[i],
                         y[i],
-                        mark + need_line,
+                        mark[i] + need_line,
                         alpha=alpha,
                         ms=dots,
                         label=labels[i],
@@ -195,7 +198,7 @@ def graph(
                     plt.plot(
                         x[i],
                         y[i],
-                        mark + need_line,
+                        mark[i] + need_line,
                         alpha=alpha,
                         ms=dots,
                         label=labels[i]
@@ -206,7 +209,7 @@ def graph(
                 plt.plot(
                     x[i],
                     y[i],
-                    mark + need_line,
+                    mark[i] + need_line,
                     alpha=alpha,
                     ms=dots
                 )
@@ -282,23 +285,29 @@ def MNK(x, y):
     for x0, y0 in zip(x, y):
         k += x0 * y0
         n += x0 ** 2
+        p += y0 ** 2
         m += x0
         q += y0
-        p += y0 ** 2
-    k /= len(x)
-    n /= len(x)
-    m /= len(x)
-    q /= len(x)
-    p /= len(x)
+    k /= len(x)  # <xy>
+    n /= len(x)  # <x^2>
+    p /= len(x)  # <y^2>
+    m /= len(x)  # <x>
+    q /= len(x)  # <y>
 
-    b = (k - m * q) / (n - m ** 2)
+    Dxy = k - m * q
+    Dxx = n - m ** 2
+    Dyy = p - q ** 2
+    b = Dxy / Dxx
     a = q - b * m
 
-    sigma = (np.sqrt(float((p - q ** 2) / (n - m ** 2)) - b ** 2)) / np.sqrt(len(x))
+    sigma_b = np.sqrt(
+        (Dyy / Dxx - b ** 2) / (len(x) - 2)
+    )
+    sigma_a = sigma_b * np.sqrt(n)
 
-    rel_err_sq = (sigma / b) ** 2
+    rel_err_sq = (sigma_b / b) ** 2
 
-    return b, a, sigma, rel_err_sq
+    return b, a, sigma_b, sigma_a, rel_err_sq
 
 
 def MNK_0(x, y):
@@ -316,20 +325,19 @@ def MNK_0(x, y):
         sigma - mean squared error ( y_real - y_approx )
         rel_err_sq - quotient sigma to b squared ( is usable for error calculation )
     """
-    k, n = 0., 0.
+    k, n, p = 0., 0., 0.
     for x0, y0 in zip(x, y):
         k += y0 * x0
         n += x0 ** 2
-    k /= len(x)
-    n /= len(x)
+        p += y0 ** 2
+    k /= len(x)  # <xy>
+    n /= len(x)  # <x^2>
+    p /= len(x)  # <y^2>
     b = k / n
 
-    s = 0
-    for x0, y0 in zip(x, y):
-        s += (y0 / x0 - b) ** 2
-    s /= (len(x) * (len(x) - 1))
-
-    sigma = np.sqrt(s)
+    sigma = np.sqrt(
+        (p / n - b ** 2) / (len(x) - 1)
+    )
 
     rel_err_sq = (sigma / b) ** 2
 

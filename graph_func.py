@@ -18,6 +18,8 @@ def graph(
         clr=None,
         alpha=1,
         need_line='',
+        linewidth=1,
+        ax_lw=0.5,
         mark=None,
         dots=10,
         figsize=None,
@@ -38,6 +40,8 @@ def graph(
     clr - tuple - список цветов кривых (если есть labels)
     alpha - float - прозрачность графика (от 0 до 1)
     need_line - str - тип линии, если ее нужно провести по точкам
+    linewidth - float - ширина линии
+    ax_lw - float - ширина линий сетки
     mark - str - тип маркера для точек
     dots - float - размер точек
     figsize - tuple размера 2 - размер конечной картинки
@@ -188,6 +192,7 @@ def graph(
                         x[i],
                         y[i],
                         mark[i] + need_line,
+                        lw=linewidth,
                         alpha=alpha,
                         ms=dots,
                         label=labels[i],
@@ -199,6 +204,7 @@ def graph(
                         x[i],
                         y[i],
                         mark[i] + need_line,
+                        lw=linewidth,
                         alpha=alpha,
                         ms=dots,
                         label=labels[i]
@@ -210,6 +216,7 @@ def graph(
                     x[i],
                     y[i],
                     mark[i] + need_line,
+                    lw=linewidth,
                     alpha=alpha,
                     ms=dots
                 )
@@ -261,9 +268,9 @@ def graph(
     # Делаем сетку :)
     ax.minorticks_on()
     # Customize the major grid
-    ax.grid(which='major', linestyle='-', linewidth='0.5', color='black')
+    ax.grid(which='major', linestyle='-', linewidth=f'{ax_lw}', color='black')
     # Customize the minor grid
-    ax.grid(which='minor', linestyle=':', linewidth='0.5', color='black')
+    ax.grid(which='minor', linestyle=':', linewidth=f'{ax_lw}', color='black')
 
 
 def MNK(x, y):
